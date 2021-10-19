@@ -15,6 +15,10 @@
 // executable gets copied here (mid of MEM2)
 #define EXECUTABLE_MEM_ADDR 0x92000000
 
+// hbc stub magic "STUBHAXX"
+#define HBC_STUBMAGIC_ADDR 0x80001804
+#define HBC_STUBMAGIC_SIZE 8
+
 extern void __exception_closeall();
 typedef void (*entrypoint) (void);
 
@@ -218,6 +222,14 @@ int main(int argc, char *argv[]) {
 
 	entrypoint exe_entrypoint = (entrypoint)exe_address;
 
+#if !DEBUG
+	// clear hbc stub magic to return to home menu after exit
+	#pragma GCC diagnostic ignored "-Wstringop-overflow"
+	memset((void *)HBC_STUBMAGIC_ADDR, 0, HBC_STUBMAGIC_SIZE);
+	#pragma GCC diagnostic pop
+	DCFlushRange((void *)HBC_STUBMAGIC_ADDR, HBC_STUBMAGIC_SIZE);
+#endif
+
 	// clean up and execute
 #if DEBUG
 	printf(":)\n");
@@ -244,7 +256,5 @@ _failure:
 	printf(":(\n");
 #endif
 
-	// TODO: check stub
-	//SYS_ResetSystem(SYS_RETURNTOMENU, 0, 0);
 	exit(1);
 }
