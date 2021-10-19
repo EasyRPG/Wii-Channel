@@ -19,7 +19,7 @@ extern void __exception_closeall();
 typedef void (*entrypoint) (void);
 
 static struct {
-	const char *name;
+	const char *name; // without colon
 	const DISC_INTERFACE *di;
 	bool avail;
 } fs[] = {
@@ -79,10 +79,14 @@ void DoUnmount() {
 	for (int i = 0; fs[i].name != NULL; i++) {
 		if (!fs[i].avail) continue;
 
+		// append needed colon
+		char devname[5];
+		strcpy(devname, fs[i].name);
+		strcat(devname, ":");
 #if DEBUG
-		printf("Unmounting \"%s\"...\n", fs[i].name);
+		printf("Unmounting \"%s\"...\n", devname);
 #endif
-		fatUnmount(fs[i].name);
+		fatUnmount(devname);
 	}
 }
 
